@@ -1,0 +1,8 @@
+{
+  "name": "SE Interview Platform",
+  "description": "AI-powered interviewing platform for Forward Deployed/Sales Engineering roles with a brutalist aesthetic.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
