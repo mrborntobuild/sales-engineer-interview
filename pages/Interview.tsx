@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { InterviewStatus, Message, PermissionState } from '../types';
 import { interviewService } from '../services/gemini';
+import { tavusService } from '../services/tavus';
 
 const CheckItem: React.FC<{ label: string; checked: boolean; loading?: boolean }> = ({ label, checked, loading }) => (
   <div className="flex items-center gap-3 py-2">
@@ -14,6 +16,7 @@ const CheckItem: React.FC<{ label: string; checked: boolean; loading?: boolean }
 );
 
 export const Interview: React.FC = () => {
+  const navigate = useNavigate();
   const [status, setStatus] = useState<InterviewStatus>(InterviewStatus.IDLE);
   const [permissions, setPermissions] = useState<PermissionState>({ audio: false, video: false, screen: false });
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -21,6 +24,8 @@ export const Interview: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingTavusConversation, setIsCreatingTavusConversation] = useState(false);
+  const [tavusError, setTavusError] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const screenRef = useRef<HTMLVideoElement>(null);
@@ -106,6 +111,41 @@ export const Interview: React.FC = () => {
     setIsLoading(false);
   };
 
+  const startTavusConversation = async () => {
+    setIsCreatingTavusConversation(true);
+    setTavusError(null);
+    
+    try {
+      // Get default replica ID
+      const replicaId = tavusService.getDefaultReplicaId();
+      
+      if (!replicaId) {
+        throw new Error('No replica ID configured. Please set VITE_TAVUS_DEFAULT_REPLICA_ID');
+      }
+
+      // Fetch personas to get the first one (or use a default persona ID if you have one)
+      const personas = await tavusService.getPersonas();
+      
+      if (personas.length === 0) {
+        throw new Error('No personas available. Please create a persona first.');
+      }
+
+      // Create conversation with first persona
+      const conversationUrl = await tavusService.createInterviewSession({
+        replicaId,
+        personaId: personas[0].persona_id,
+        conversationName: `Forward Deployed Engineer Interview - ${new Date().toLocaleDateString()}`,
+      });
+
+      // Redirect to Tavus conversation page
+      navigate(`/tavus-conversation?url=${encodeURIComponent(conversationUrl)}`);
+    } catch (err) {
+      console.error('Error creating Tavus conversation:', err);
+      setTavusError(err instanceof Error ? err.message : 'Failed to create conversation');
+      setIsCreatingTavusConversation(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pb-10 bg-[#dcd6f7] bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]">
       <div className="fixed inset-0 pointer-events-none opacity-20 bg-white mix-blend-overlay z-0 noise-bg"></div>
@@ -118,9 +158,28 @@ export const Interview: React.FC = () => {
           <h1 className="text-5xl md:text-7xl font-serif text-black mb-6 leading-tight">
             Forward Deployed <br/> Engineer Interview
           </h1>
-          <p className="text-xl md:text-2xl font-serif text-gray-700 italic">
+          <p className="text-xl md:text-2xl font-serif text-gray-700 italic mb-8">
             Join the team decoding conversation.
           </p>
+          
+          {/* Start Tavus Interview Button */}
+          <div className="flex justify-center mb-8">
+            <Button 
+              onClick={startTavusConversation} 
+              disabled={isCreatingTavusConversation}
+              variant="primary" 
+              className="px-12 py-4 text-xl tracking-wider bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
+            >
+              {isCreatingTavusConversation ? 'CREATING CONVERSATION...' : 'START TAVUS INTERVIEW'}
+            </Button>
+          </div>
+          
+          {tavusError && (
+            <div className="max-w-2xl mx-auto bg-red-100 border-2 border-red-500 p-4 mb-8 text-xs font-mono text-red-800">
+              <p className="font-bold">ERROR:</p>
+              <p>{tavusError}</p>
+            </div>
+          )}
         </div>
 
         {/* Dashboard Grid */}
@@ -286,35 +345,12 @@ export const Interview: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-4 justify-center">
-                 {status === InterviewStatus.IDLE && (
-                    <Button onClick={requestPermissions} fullWidth className="h-16 text-lg">
-                       INITIALIZE HARDWARE
-                    </Button>
-                 )}
-                 
-                 {status === InterviewStatus.READY && (
-                    <div className="space-y-4">
-                      <div className="text-xs font-mono text-gray-600 bg-white p-2 border border-black">
-                        * By clicking Start, you will be prompted to share your screen. Select the window where your coding environment is open.
-                      </div>
-                      <Button onClick={startInterview} variant="primary" fullWidth className="h-16 text-xl tracking-wider">
-                         START INTERVIEW
-                      </Button>
-                    </div>
-                 )}
-
-                 {status === InterviewStatus.ACTIVE && (
-                    <div className="bg-black text-[#ff8fa3] p-6 border-2 border-[#ff8fa3] brutalist-shadow h-full flex flex-col justify-center items-center text-center">
-                       <span className="animate-pulse font-mono text-xl font-bold mb-2">● RECORDING</span>
-                       <p className="text-white text-sm">Session ID: TVS-882-991</p>
-                       <button 
-                          onClick={() => window.location.reload()} 
-                          className="mt-4 border border-[#ff8fa3] text-white px-4 py-1 hover:bg-[#ff8fa3] hover:text-black transition-colors text-xs"
-                        >
-                          END SESSION
-                       </button>
-                    </div>
-                 )}
+                 {/* Empty state - Tavus button is now at the top */}
+                 <div className="bg-white border-2 border-black p-6 brutalist-shadow text-center">
+                   <p className="font-mono text-sm text-gray-600">
+                     Click "START TAVUS INTERVIEW" above to begin
+                   </p>
+                 </div>
               </div>
             </div>
 

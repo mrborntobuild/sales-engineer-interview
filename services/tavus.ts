@@ -89,6 +89,10 @@ interface CreatePersonaResponse {
 export class TavusService {
   private apiKey: string | null = null;
   private baseUrl: string = 'https://tavusapi.com/v2';
+  
+  // Default replica ID to use for test interviews
+  // Set this to your preferred replica ID, or override via environment variable
+  private defaultReplicaId: string = import.meta.env.VITE_TAVUS_DEFAULT_REPLICA_ID || 'r6ca16dbe104';
 
   constructor() {
     // Get API key from environment variables
@@ -97,6 +101,20 @@ export class TavusService {
     if (!this.apiKey) {
       console.warn("TAVUS_API_KEY not found. Please set VITE_TAVUS_API_KEY in .env.local");
     }
+  }
+  
+  /**
+   * Get the default replica ID for test interviews
+   */
+  getDefaultReplicaId(): string {
+    return this.defaultReplicaId;
+  }
+  
+  /**
+   * Set the default replica ID for test interviews
+   */
+  setDefaultReplicaId(replicaId: string): void {
+    this.defaultReplicaId = replicaId;
   }
 
   /**

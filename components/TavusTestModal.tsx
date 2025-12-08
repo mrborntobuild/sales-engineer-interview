@@ -70,8 +70,8 @@ export const TavusTestModal: React.FC<TavusTestModalProps> = ({ isOpen, onClose 
   };
 
   const handleTestCreateConversation = async () => {
-    if (replicas.length === 0 || personas.length === 0) {
-      setError('Please fetch replicas and personas first');
+    if (personas.length === 0) {
+      setError('Please fetch personas first');
       return;
     }
 
@@ -79,7 +79,16 @@ export const TavusTestModal: React.FC<TavusTestModalProps> = ({ isOpen, onClose 
     setError(null);
     setSuccess(null);
     try {
-      const replicaId = replicas[0].replica_id;
+      // Use default replica ID from service, or fallback to first replica if available
+      const defaultReplicaId = tavusService.getDefaultReplicaId();
+      const replicaId = defaultReplicaId || (replicas.length > 0 ? replicas[0].replica_id : null);
+      
+      if (!replicaId) {
+        setError('No replica ID available. Please set VITE_TAVUS_DEFAULT_REPLICA_ID in .env.local or fetch replicas first');
+        setLoading(false);
+        return;
+      }
+      
       const personaId = personas[0].persona_id;
       const data = await tavusService.testCreateConversation({
         replicaId,
