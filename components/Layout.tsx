@@ -31,23 +31,6 @@ export const Navbar: React.FC = () => {
           </Link>
           <div className="hidden md:flex">
              <Link 
-               to="/dashboard" 
-               className={`px-4 py-3 text-sm font-bold transition-colors border-r-2 border-black flex items-center text-black ${
-                 isActive('/dashboard') ? 'bg-[#dcd6f7]' : 'hover:bg-[#dcd6f7]'
-               }`}
-             >
-               <span className="bg-[#ff8fa3] text-[10px] px-1 border border-black mr-2 text-black">BETA</span>
-               DASHBOARD
-             </Link>
-             <Link 
-               to="/candidates" 
-               className={`px-4 py-3 text-sm font-bold transition-colors border-r-2 border-black flex items-center text-black ${
-                 isActive('/candidates') ? 'bg-[#dcd6f7]' : 'hover:bg-[#dcd6f7]'
-               }`}
-             >
-               CANDIDATES
-             </Link>
-             <Link 
                to="/conversations" 
                className={`px-4 py-3 text-sm font-bold transition-colors border-r-2 border-black flex items-center text-black ${
                  isActive('/conversations') ? 'bg-[#dcd6f7]' : 'hover:bg-[#dcd6f7]'

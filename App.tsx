@@ -2,8 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { TopBanner, Navbar } from './components/Layout';
 import { Interview } from './pages/Interview';
-import { Dashboard } from './pages/Dashboard';
-import { Candidates } from './pages/Candidates';
 import { Settings } from './pages/Settings';
 import { TavusInterview } from './pages/TavusInterview';
 import { TavusConversation } from './pages/TavusConversation';
@@ -36,8 +34,6 @@ const App: React.FC = () => {
       <AppLayout>
         <Routes>
           <Route path="/" element={<Interview />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/candidates" element={<Candidates />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/conversations" element={<Conversations />} />
           <Route path="/tavus-interview" element={<TavusInterview />} />
