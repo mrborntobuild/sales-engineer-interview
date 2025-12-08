@@ -17,14 +17,22 @@ Do not write out long paragraphs. Speak as if you are on a video call.
 `;
 
 export class InterviewService {
-  private ai: GoogleGenAI;
+  private ai: GoogleGenAI | null = null;
   private model: string = "gemini-2.5-flash"; // Using flash for speed in chat
 
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = import.meta.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+    if (apiKey) {
+      this.ai = new GoogleGenAI({ apiKey });
+    } else {
+      console.warn("GEMINI_API_KEY not found. AI features will be disabled. Please set GEMINI_API_KEY in .env.local");
+    }
   }
 
   async startInterview(introMessage: string = "Hello! I'm ready for the interview."): Promise<string> {
+    if (!this.ai) {
+      return "Welcome! I'm ready to begin the interview. Please set your GEMINI_API_KEY in a .env.local file to enable AI features.";
+    }
     try {
       const response = await this.ai.models.generateContent({
         model: this.model,
@@ -41,6 +49,9 @@ export class InterviewService {
   }
 
   async sendMessage(history: { role: string; parts: { text: string }[] }[], newMessage: string): Promise<string> {
+    if (!this.ai) {
+      return "AI features are disabled. Please set your GEMINI_API_KEY in a .env.local file.";
+    }
     try {
        const chat = this.ai.chats.create({
         model: this.model,
